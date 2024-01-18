@@ -14,5 +14,9 @@ Blender version
 
 Version history
 -
+1.0.1
+- works from active vertex
+- 'Saw' algorithm added
+
 1.0.0
 - Release

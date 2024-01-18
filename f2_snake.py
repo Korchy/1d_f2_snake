@@ -6,14 +6,15 @@
 
 import bmesh
 import bpy
-from bpy.types import Operator, Panel
+from bpy.props import EnumProperty, PointerProperty
+from bpy.types import Operator, Panel, PropertyGroup, WindowManager
 from bpy.utils import register_class, unregister_class
 
 bl_info = {
     "name": "F2 Snake",
     "description": "Fills snake-like loop of vertices with polygons",
     "author": "Nikita Akimov, Paul Kotelevets",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 79, 0),
     "location": "View3D > Tool panel > 1D > F2 Snake",
     "doc_url": "https://github.com/Korchy/1d_f2_snake",
@@ -36,15 +37,15 @@ class F2Snake:
         if src_obj.mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
         # process object
-        # get data loop from source mesh
+        # get data from source mesh
         bm = bmesh.new()
         bm.from_mesh(context.object.data)
         bm.verts.ensure_lookup_table()
         bm.edges.ensure_lookup_table()
-        src_vertices = [vertex for vertex in bm.verts if vertex.select]
+        # get loop starting from active vertex
+        src_vertices = [vertex for vertex in bm.verts]
         if src_vertices:
-            first_vertex = next((vertex for vertex in src_vertices
-                                 if len(vertex.link_edges) == 1), None)
+            first_vertex = bm.select_history.active     # get active vertex as first
             selection_loop_sorted = cls.vertices_loop_sorted(
                 bmesh_vertices_list=src_vertices,
                 bmesh_first_vertex=first_vertex
@@ -56,7 +57,13 @@ class F2Snake:
                     offset=2    # offset =-2 because snake-line line has 2 same vertices in each polygon
             ):
                 if len(chunk) == 4:     # don't create non quad faces
-                    bm.faces.new(chunk)
+                    if context.window_manager.f2snake_interface_vars.algorithm == 'snake':
+                        # snake algorithm
+                        bm.faces.new(chunk)
+                    elif context.window_manager.f2snake_interface_vars.algorithm == 'saw':
+                        # saw algorithm
+                        # remove edges
+                        
         # recalculate normals
         bmesh.ops.recalc_face_normals(bm, faces=[face for face in bm.faces])
         # save changed data to mesh
@@ -75,6 +82,7 @@ class F2Snake:
     @staticmethod
     def vertices_loop_sorted(bmesh_vertices_list, bmesh_first_vertex):
         # return list with vertices sorted by following each other in the loop
+        # breaks if loop ends with polygon
         vertices_sorted = []
         if bmesh_vertices_list and bmesh_first_vertex:
             vertex = bmesh_first_vertex
@@ -85,6 +93,8 @@ class F2Snake:
                 edge = next((_edge for _edge in vertex.link_edges
                              if _edge.other_vert(vertex) not in vertices_sorted), None)
                 vertex = edge.other_vert(vertex) if edge else None
+                # stop loop if vertex has linked polygons
+                vertex = vertex if vertex and len(vertex.link_faces) == 0 else None
                 # alarm break
                 i += 1
                 if i > _l:
@@ -92,6 +102,18 @@ class F2Snake:
                     break
         # return sorted sequence
         return vertices_sorted
+
+
+# INTERFACE VARS
+
+class F2SnakeInterfaceVars(PropertyGroup):
+    algorithm = EnumProperty(
+        items=[
+            ('snake', 'Snake', 'Snake', '', 0),
+            ('saw', 'Saw', 'Saw', '', 1)
+        ],
+        default='saw'
+    )
 
 
 # OPERATORS
@@ -117,15 +139,25 @@ class F2Snake_PT_panel(Panel):
     bl_category = '1D'
 
     def draw(self, context):
-        self.layout.operator(
+        layout = self.layout
+        layout.operator(
             operator='f2snake.fill',
             icon='SURFACE_DATA'
+        )
+        layout.prop(
+            data=context.window_manager.f2snake_interface_vars,
+            property='algorithm',
+            expand=True
         )
 
 
 # REGISTER
 
 def register():
+    register_class(F2SnakeInterfaceVars)
+    WindowManager.f2snake_interface_vars = PointerProperty(
+        type=F2SnakeInterfaceVars
+    )
     register_class(F2Snake_OT_fill)
     register_class(F2Snake_PT_panel)
 
@@ -133,6 +165,8 @@ def register():
 def unregister():
     unregister_class(F2Snake_PT_panel)
     unregister_class(F2Snake_OT_fill)
+    del WindowManager.f2snake_interface_vars
+    unregister_class(F2SnakeInterfaceVars)
 
 
 if __name__ == "__main__":
