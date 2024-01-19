@@ -62,8 +62,11 @@ class F2Snake:
                         bm.faces.new(chunk)
                     elif context.window_manager.f2snake_interface_vars.algorithm == 'saw':
                         # saw algorithm
-                        # remove edges
-                        
+                        # remove edge between 2-nd and 3-rd vertices
+                        edge = next(iter(set(chunk[1].link_edges) & set(chunk[2].link_edges)), None)
+                        if edge:
+                            bm.edges.remove(edge)
+                        bm.faces.new([chunk[0], chunk[2], chunk[3], chunk[1]])
         # recalculate normals
         bmesh.ops.recalc_face_normals(bm, faces=[face for face in bm.faces])
         # save changed data to mesh
