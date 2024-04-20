@@ -14,7 +14,7 @@ bl_info = {
     "name": "F2 Snake",
     "description": "Fills snake-like loop of vertices with polygons",
     "author": "Nikita Akimov, Paul Kotelevets",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (2, 79, 0),
     "location": "View3D > Tool panel > 1D > F2 Snake",
     "doc_url": "https://github.com/Korchy/1d_f2_snake",
@@ -124,6 +124,7 @@ class F2SnakeInterfaceVars(PropertyGroup):
 class F2Snake_OT_fill(Operator):
     bl_idname = 'f2snake.fill'
     bl_label = 'Fill'
+    bl_description = 'Fill wiremesh loop with quads'
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -138,7 +139,7 @@ class F2Snake_OT_fill(Operator):
 class F2Snake_PT_panel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    bl_label = "F2 Snake"
+    bl_label = 'F2 Snake'
     bl_category = '1D'
 
     def draw(self, context):

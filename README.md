@@ -14,6 +14,9 @@ Blender version
 
 Version history
 -
+1.0.2
+- UI improving
+
 1.0.1
 - works from active vertex
 - 'Saw' algorithm added
