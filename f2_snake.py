@@ -113,7 +113,8 @@ class F2Snake:
             operator='f2snake.fill',
             icon='SURFACE_DATA'
         )
-        layout.prop(
+        row = layout.row()
+        row.prop(
             data=context.window_manager.f2snake_interface_vars,
             property='algorithm',
             expand=True
