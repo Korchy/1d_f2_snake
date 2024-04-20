@@ -16,6 +16,7 @@ Version history
 -
 1.0.2
 - UI improving
+- Integrated to the NA 1D Tools
 
 1.0.1
 - works from active vertex

@@ -106,6 +106,19 @@ class F2Snake:
         # return sorted sequence
         return vertices_sorted
 
+    @staticmethod
+    def ui(layout, context):
+        # ui panel
+        layout.operator(
+            operator='f2snake.fill',
+            icon='SURFACE_DATA'
+        )
+        layout.prop(
+            data=context.window_manager.f2snake_interface_vars,
+            property='algorithm',
+            expand=True
+        )
+
 
 # INTERFACE VARS
 
@@ -143,31 +156,27 @@ class F2Snake_PT_panel(Panel):
     bl_category = '1D'
 
     def draw(self, context):
-        layout = self.layout
-        layout.operator(
-            operator='f2snake.fill',
-            icon='SURFACE_DATA'
-        )
-        layout.prop(
-            data=context.window_manager.f2snake_interface_vars,
-            property='algorithm',
-            expand=True
+        F2Snake.ui(
+            layout=self.layout,
+            context=context
         )
 
 
 # REGISTER
 
-def register():
+def register(ui=True):
     register_class(F2SnakeInterfaceVars)
     WindowManager.f2snake_interface_vars = PointerProperty(
         type=F2SnakeInterfaceVars
     )
     register_class(F2Snake_OT_fill)
-    register_class(F2Snake_PT_panel)
+    if ui:
+        register_class(F2Snake_PT_panel)
 
 
-def unregister():
-    unregister_class(F2Snake_PT_panel)
+def unregister(ui=True):
+    if ui:
+        unregister_class(F2Snake_PT_panel)
     unregister_class(F2Snake_OT_fill)
     del WindowManager.f2snake_interface_vars
     unregister_class(F2SnakeInterfaceVars)
